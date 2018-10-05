@@ -1,5 +1,5 @@
 from collections import deque
-import pdb
+
 #read the book, get the unique words
 
 def create_word_hash(text):   
@@ -144,22 +144,26 @@ class Trie:
     
     
 def test1():
-    words = ['dog', 'DOG', 'day', 'delta', 'damn', 'dogma', 'god', 'A',"to", "tea", "ted", "ten", "i", "in", "inn"]
+    words = ['dog', 'DOG', 'day', 'delta', 'dogma', 'A',"to", "tea", "ted", "ten", "i", "in", "inn"]
     
     prefixes = ['dog', 'go', 'a', 'lx', 't', '', 'in', 'x', 'n', 'i']
-    expected = [True, True, True, False, True, True, True, False, False, True]
+    expected = [True, False, True, False, True, True, True, False, False, True]
     t = Trie()
     
     for word in words:
         t.add_word(word)
 
-    #t.print()
-
+    tests_pass = True
     for i,test in enumerate(prefixes):
-        print(f'Contains prefix: {test}: {t.has_prefix(test)}.  Expected: {expected[i]}')
 
-    #t.print()
-    #print(t.has_prefix('shi'))
+        result = t.has_prefix(test)
+
+        print(f'Contains prefix: {test}: {result}.  Expected: {expected[i]}')
+
+        if result != expected[i]:
+            tests_pass = False
+    
+    print(f'tests pass: {tests_pass}')
     
 
 test1()
