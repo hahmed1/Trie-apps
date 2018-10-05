@@ -74,35 +74,21 @@ class Node:
 class Trie:
     def __init__(self):
         self.root = Node('')
-        self.visited = {}
+      
 
     def add_word(self, word):
         #pdb.set_trace()
         cur = self.root
-        for c in word:
+        for idx,c in enumerate(word):
             if not cur.has_child(c):
                 node = Node(c)
                 cur.add_child(node)
                 cur = node
             else:
                 cur = cur.get_child(c)
-
-    def print(self):
-
-        dq = deque()
-        dq.appendleft(self.root)
-       
-        while dq: 
-           
-            cur = dq.pop()
-            children = cur.get_children()
-            child_letters = cur.get_child_letters()
-
-            for c in children: 
-                dq.appendleft(c)
-
-            print(f'children: {child_letters}')
-    
+            
+            if idx == len(word) - 1:
+                cur.terminal = True
 
     def dfs_print_helper(self, source, indent):
 
@@ -110,37 +96,32 @@ class Trie:
 
         for node in source.get_children():
             #self.visited[node] = None
-            print(node.letter.rjust(indent))
+
+            to_print = node.letter.rjust(indent)
+
+            if node.terminal == True:
+                to_print +='.'
+
+            print(to_print)
             self.dfs_print_helper(node, indent+2)
 
     # print that traverses using DFS
-    def dfs_print(self):
+    def print(self):
         #self.visited = {self.root : None}
 
         self.dfs_print_helper(self.root, 0)
 
     
-        
-
-
-#just see if this crashes
+    
 def test1():
-    word1 = 'dog'
-    word2 = 'day'
-    word3 = 'delta'
-    word4 = 'damn'
-
+    words = ['dog', 'DOG', 'day', 'delta', 'damn', 'dogma', 'god', 'A',"to", "tea", "ted", "ten", "i", "in", "inn"]
+    
     t = Trie()
-    t.add_word(word1)
-    t.add_word(word2)
-    t.add_word(word3)
-    t.add_word(word4)
+    
+    for word in words:
+        t.add_word(word)
 
-    #print(t.root.get_child_letters())
-
-    #pdb.set_trace()
-
-    t.dfs_print()
+    t.print()
 
     
 
