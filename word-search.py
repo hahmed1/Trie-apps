@@ -1,5 +1,5 @@
 from collections import deque
-
+import pdb
 #read the book, get the unique words
 
 def create_word_hash(text):   
@@ -43,31 +43,41 @@ class Node:
 
         if self.children[position] == None:
             self.children[position] = node
-        
+
+    # returns non-null raw Node object  
     def get_children(self):
         return [x for x in self.children if x]
 
+    # this is position based
     def has_child(self, letter):
-        return letter in self.get_children()
+
+        pos = Node._get_pos(letter)
+        return self.children[pos] != None
+
+        #return letter in self.get_children()
 
     # look-up an existing child and return it
     def get_child(self, letter):
         if not self.has_child(letter):
             raise ValueError(f'{self} does not have a child with letter {letter}')
     
-        pos = _get_pos(letter)
+        pos = Node._get_pos(letter)
         return self.children[pos]
 
+
     def get_child_letters(self):
-        print(self.get_children())
-        [x.letter for x in self.get_children()]
+        #print(self.get_children())
+        #pdb.set_trace()
+        
+        return [x.letter for x in self.get_children()]
 
 class Trie:
     def __init__(self):
         self.root = Node('')
-    
-    def add_word(self, word):
+        self.visited = {}
 
+    def add_word(self, word):
+        #pdb.set_trace()
         cur = self.root
         for c in word:
             if not cur.has_child(c):
@@ -80,40 +90,58 @@ class Trie:
     def print(self):
 
         dq = deque()
-        dq.append(self.root)
-        level = 1
+        dq.appendleft(self.root)
+       
         while dq: 
-            #print(f'Level: {level}')
-            #level += 1
-
+           
             cur = dq.pop()
             children = cur.get_children()
             child_letters = cur.get_child_letters()
 
             for c in children: 
-                dq.append(c)
+                dq.appendleft(c)
 
             print(f'children: {child_letters}')
+    
+
+    def dfs_print_helper(self, source, indent):
+
+        #visited = {self.root: None}
+
+        for node in source.get_children():
+            #self.visited[node] = None
+            print(node.letter.rjust(indent))
+            self.dfs_print_helper(node, indent+2)
+
+    # print that traverses using DFS
+    def dfs_print(self):
+        #self.visited = {self.root : None}
+
+        self.dfs_print_helper(self.root, 0)
+
+    
+        
+
 
 #just see if this crashes
 def test1():
     word1 = 'dog'
     word2 = 'day'
+    word3 = 'delta'
+    word4 = 'damn'
 
     t = Trie()
     t.add_word(word1)
     t.add_word(word2)
+    t.add_word(word3)
+    t.add_word(word4)
 
-    #t.print()
+    #print(t.root.get_child_letters())
 
-    lev1 = t.root.get_children()
-    lev2 = []
-    for c in lev1:
-        print(c.letter)
-        lev2.append(c)
-    for c in lev2: 
-        ch2 = c.get_children()
-        for x in ch2: 
-            print(x.letter)
+    #pdb.set_trace()
+
+    t.dfs_print()
+
+    
 
 test1()
