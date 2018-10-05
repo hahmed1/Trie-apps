@@ -71,13 +71,19 @@ class Node:
         
         return [x.letter for x in self.get_children()]
 
+    def is_terminal(self):
+        return self.terminal
+
+    # sets terminal to true
+    def set_terminal(self):
+        self.terminal = True
+
 class Trie:
     def __init__(self):
         self.root = Node('')
       
 
     def add_word(self, word):
-        #pdb.set_trace()
         cur = self.root
         for idx,c in enumerate(word):
             if not cur.has_child(c):
@@ -86,9 +92,10 @@ class Trie:
                 cur = node
             else:
                 cur = cur.get_child(c)
-            
+
+            # set the last letter to a terminal node
             if idx == len(word) - 1:
-                cur.terminal = True
+                cur.set_terminal()
 
     def dfs_print_helper(self, source, indent):
 
@@ -99,7 +106,7 @@ class Trie:
 
             to_print = node.letter.rjust(indent)
 
-            if node.terminal == True:
+            if node.is_terminal():
                 to_print +='.'
 
             print(to_print)
@@ -111,18 +118,48 @@ class Trie:
 
         self.dfs_print_helper(self.root, 0)
 
+    def has_prefix(self, prefix):
+        return self.has_prefix_helper(prefix, self.root.get_children())
+
+    def has_prefix_helper(self, prefix, node_list):
+
+        if prefix == '':
+            return True
+
+        else:
+            cur_letter = prefix[0].lower()
+
+            trie_letters = [x.letter.lower() for x in node_list]
+
+            if cur_letter in trie_letters:
+
+                # 2nd argument finds the matching node object and recurses 
+                return self.has_prefix_helper(prefix[1:], [x for x in node_list if x.letter.lower() == cur_letter.lower()][0].get_children())
+            else:
+                return False
+
+                
+            
+            
     
     
 def test1():
     words = ['dog', 'DOG', 'day', 'delta', 'damn', 'dogma', 'god', 'A',"to", "tea", "ted", "ten", "i", "in", "inn"]
     
+    prefixes = ['dog', 'go', 'a', 'lx', 't', '', 'in', 'x', 'n', 'i']
+    expected = [True, True, True, False, True, True, True, False, False, True]
     t = Trie()
     
     for word in words:
         t.add_word(word)
 
-    t.print()
+    #t.print()
 
+    for i,test in enumerate(prefixes):
+        print(f'Contains prefix: {test}: {t.has_prefix(test)}.  Expected: {expected[i]}')
+
+    #t.print()
+    #print(t.has_prefix('shi'))
     
 
 test1()
