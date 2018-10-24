@@ -1,7 +1,6 @@
 from collections import deque
 
 #read the book, get the unique words
-
 def create_word_hash(text):   
     words = {}
     distinct_count = 0
@@ -12,7 +11,7 @@ def create_word_hash(text):
                     words[word] = 1
                     distinct_count += 1
     print(f"distinct word count {distinct_count}")
-
+    return words
 
 
 
@@ -24,13 +23,17 @@ class Node:
         # this gets set to true if the path from root to this node is a valid word 
         self.terminal = False
 
+        self.weight = 0
+
+
     # get the position of a new letter in the children array, 
     # irrespective of case
     @staticmethod
     def _get_pos(letter):
         pos = ord(letter.lower()) - 97
-        if pos < 0 or pos > 25: 
-            raise ValueError(f'Attempted to add a non alphabetical character {letter}')
+        if pos < 0 or pos > 25:
+            msg = f'Attempted to add a non alphabetical character {letter}'
+            raise ValueError(msg)
 
         return pos
 
@@ -39,10 +42,13 @@ class Node:
     def add_child(self, node):
         new_letter = node.letter
 
-        position = Node._get_pos(new_letter)
+        try:
+            position = Node._get_pos(new_letter)
 
-        if self.children[position] == None:
-            self.children[position] = node
+            if self.children[position] == None:
+                self.children[position] = node
+        except ValueError:
+            pass
 
     # returns non-null raw Node object  
     def get_children(self):
@@ -51,8 +57,11 @@ class Node:
     # this is position based
     def has_child(self, letter):
 
-        pos = Node._get_pos(letter)
-        return self.children[pos] != None
+        try:
+            pos = Node._get_pos(letter)
+            return self.children[pos] != None
+        except: 
+            return False
 
         #return letter in self.get_children()
 
@@ -78,6 +87,10 @@ class Node:
     def set_terminal(self):
         self.terminal = True
 
+ 
+    def increment_weight(self): 
+        self.weight += 1
+
 class Trie:
     def __init__(self):
         self.root = Node('')
@@ -92,10 +105,32 @@ class Trie:
                 cur = node
             else:
                 cur = cur.get_child(c)
-
             # set the last letter to a terminal node
             if idx == len(word) - 1:
                 cur.set_terminal()
+
+
+    # assume that the trie is already built.  
+    # we now want to mine large bodies of text and add weights to each node at 
+    # each level of the tree.  The basic idea here is to increment the weight by one for each 
+    # letter in the word for which we are adding weights.
+    #
+    # Suppose for example that the word='dog'.  Then for each node in the path "d", "o", "g", 
+    # we increment the weightt of the node by one.  
+    # TODO: test this
+
+    def add_weight(self, word):
+        cur = self.root 
+        for idx, c in enumerate(word):
+            if not cur.has_child(c):
+                return 
+            cur.increment_weight()
+            cur = cur.get_child(c)
+
+    # Autocomplete feature.  Suggest a list of words based on weights, which are specified according to 
+    # the semantics specified in add_weight() above.  
+    def suggest_words(self, prefix):
+        pass
 
     def dfs_print_helper(self, source, indent):
 
@@ -164,6 +199,39 @@ def test1():
             tests_pass = False
     
     print(f'tests pass: {tests_pass}')
-    
 
-test1()
+
+def test2():
+    words = create_word_hash('./monte-cristo.txt')
+
+    t = Trie()
+
+    
+    for word in words.keys():
+        t.add_word(word)
+
+
+    #t.print()
+
+    import sys
+
+    #looks like it is not finding the size of the full object graph
+    print(f"Trie size in Bytes: {sys.getsizeof(t)}")
+    print(f'Dict size in MB: {sys.getsizeof(words) / 1024 / 1024}')
+
+    u_input = ''
+
+    while u_input != 'quit':
+
+        u_input = input('>')
+
+        print(t.has_prefix(u_input))
+
+test2()
+
+#test1()
+
+
+# autocomplete (i.e. for a web form)
+# assuming that the source text is a representative
+# sample of the word distribution of the English language, the trie can be used to power Autocomplete.  
