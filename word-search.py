@@ -91,6 +91,9 @@ class Node:
     def increment_weight(self): 
         self.weight += 1
 
+    def get_weight(self):
+        return self.weight
+
 class Trie:
     def __init__(self):
         self.root = Node('')
@@ -116,7 +119,7 @@ class Trie:
     # letter in the word for which we are adding weights.
     #
     # Suppose for example that the word='dog'.  Then for each node in the path "d", "o", "g", 
-    # we increment the weightt of the node by one.  
+    # we increment the weight of the node.  
     # TODO: test this
 
     def add_weight(self, word):
@@ -129,7 +132,7 @@ class Trie:
 
     # Autocomplete feature.  Suggest a list of words based on weights, which are specified according to 
     # the semantics specified in add_weight() above.  
-    def suggest_words(self, prefix):
+    def suggest_words(self, prefix, num_words=20):
         pass
 
     def dfs_print_helper(self, source, indent):
@@ -139,7 +142,7 @@ class Trie:
         for node in source.get_children():
             #self.visited[node] = None
 
-            to_print = node.letter.rjust(indent)
+            to_print = node.letter.rjust(indent) + '(' + str(node.get_weight()) + ')'
 
             if node.is_terminal():
                 to_print +='.'
@@ -200,6 +203,26 @@ def test1():
     
     print(f'tests pass: {tests_pass}')
 
+    t.print()
+
+
+def add_word_test():
+    words = ['dog', 'DOG', 'day', 'delta', 'dogma', 'A',"to", "tea", "ted", "ten", "i", "in", "inn"]
+    
+    prefixes = ['dog', 'go', 'a', 'lx', 't', '', 'in', 'x', 'n', 'i']
+    expected = [True, False, True, False, True, True, True, False, False, True]
+    t = Trie()
+    
+    for word in words:
+        t.add_word(word)
+
+    weights = ['delta', 'dark', 'day', 'deltoid', 'i', 'in']
+
+    for word in weights: 
+        t.add_weight(word)
+
+    t.print()
+
 
 def test2():
     words = create_word_hash('./monte-cristo.txt')
@@ -227,11 +250,15 @@ def test2():
 
         print(t.has_prefix(u_input))
 
-test2()
+#test2()
 
-#test1()
+add_word_test()
 
 
 # autocomplete (i.e. for a web form)
 # assuming that the source text is a representative
-# sample of the word distribution of the English language, the trie can be used to power Autocomplete.  
+# sample of the word distribution of the English language, the trie can be used to power Autocomplete. 
+# 
+# 
+# Properties of the word-trie: 
+#   sparse 
