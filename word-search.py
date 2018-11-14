@@ -26,6 +26,9 @@ class Node:
         self.weight = 0
 
 
+    def __repr__(self):
+        return f'Node object - Letter: {self.letter} - Weight:{self.weight}'
+
     # get the position of a new letter in the children array, 
     # irrespective of case
     @staticmethod
@@ -130,11 +133,43 @@ class Trie:
             cur.increment_weight()
             cur = cur.get_child(c)
 
+    def suggest_words_helper(self, prefix, num_words, source, words):
+
+        
+        children = sorted(source.get_children(), key=lambda y: y.weight, reverse=True)
+            
+        for child in children: 
+            if child.is_terminal():
+                return prefix + child.letter
+            else:
+                return self.suggest_words_helper(prefix + child.letter, num_words, child)
+
+
+
+
+
     # Autocomplete feature.  Suggest a list of words based on weights, which are specified according to 
     # the semantics specified in add_weight() above.  
     def suggest_words(self, prefix, num_words=20):
-        pass
+        cur = [self.root] 
+        pos = 0
 
+        #advance 'cur' to point to the lowest node in the Trie that matches with the prefix
+        while cur and pos < len(prefix): 
+            cur = [x for x in cur[0].get_children() if x.letter == prefix[pos]]
+            pos += 1
+    
+        self.suggest_words_helper(prefix[pos:], num_words, cur)
+        '''
+        #returns the list of the current nodes children matching with the first character in the given prefix, sorted by weight in descending order
+        source = [x for x in sorted(cur.get_children(), key=lambda y : y.weight, reverse=True) if x.letter == prefix[0]]
+
+        if source: 
+            return self.suggest_words_helper(prefix[1:], num_words, source[0])
+        else:
+            return []
+        '''
+    
     def dfs_print_helper(self, source, indent):
 
         #visited = {self.root: None}
@@ -176,11 +211,7 @@ class Trie:
             else:
                 return False
 
-                
-            
-            
-    
-    
+                 
 def test1():
     words = ['dog', 'DOG', 'day', 'delta', 'dogma', 'A',"to", "tea", "ted", "ten", "i", "in", "inn"]
     
@@ -206,7 +237,7 @@ def test1():
     t.print()
 
 
-def add_word_test():
+def add_weights_test():
     words = ['dog', 'DOG', 'day', 'delta', 'dogma', 'A',"to", "tea", "ted", "ten", "i", "in", "inn"]
     
     prefixes = ['dog', 'go', 'a', 'lx', 't', '', 'in', 'x', 'n', 'i']
@@ -223,6 +254,22 @@ def add_word_test():
 
     t.print()
 
+def suggestion_test():
+    words = ['dog', 'DOG', 'day', 'delta', 'dogma', 'A',"to", "tea", "ted", "ten", "i", "in", "inn"]
+    
+    prefixes = ['dog', 'go', 'a', 'lx', 't', '', 'in', 'x', 'n', 'i']
+    expected = [True, False, True, False, True, True, True, False, False, True]
+    t = Trie()
+    
+    for word in words:
+        t.add_word(word)
+
+    weights = ['delta', 'dark', 'day', 'deltoid', 'i', 'in']
+
+    for word in weights: 
+        t.add_weight(word)
+
+    t.suggest_words('de')
 
 def test2():
     words = create_word_hash('./monte-cristo.txt')
@@ -252,7 +299,7 @@ def test2():
 
 #test2()
 
-add_word_test()
+suggestion_test()
 
 
 # autocomplete (i.e. for a web form)
