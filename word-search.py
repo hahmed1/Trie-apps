@@ -1,3 +1,5 @@
+import pdb
+
 from collections import deque
 
 #read the book, get the unique words
@@ -18,6 +20,7 @@ def create_word_hash(text):
 class Node:
     def __init__(self, letter):
         self.letter = letter
+
         self.children = [None for x in range(26)]
         
         # this gets set to true if the path from root to this node is a valid word 
@@ -25,7 +28,7 @@ class Node:
 
         self.weight = 0
 
-
+     
     def __repr__(self):
         return f'Node object - Letter: {self.letter} - Weight:{self.weight}'
 
@@ -97,6 +100,11 @@ class Node:
     def get_weight(self):
         return self.weight
 
+    # either returns the immediate child with the given letter, or null
+    def lookup(self, letter):
+        return self.children[Node._get_pos(letter)]
+
+
 class Trie:
     def __init__(self):
         self.root = Node('')
@@ -124,6 +132,8 @@ class Trie:
     # Suppose for example that the word='dog'.  Then for each node in the path "d", "o", "g", 
     # we increment the weight of the node.  
     # TODO: test this
+    # -> Tests reveal that the below method works, except that the last letter of the word does not get 
+    #    incremented.  
 
     def add_weight(self, word):
         cur = self.root 
@@ -191,26 +201,27 @@ class Trie:
 
         self.dfs_print_helper(self.root, 0)
 
-    def has_prefix(self, prefix):
-        return self.has_prefix_helper(prefix, self.root.get_children())
 
-    def has_prefix_helper(self, prefix, node_list):
+    def has_prefix_redux(self, prefix):
+        cur_node = self.root
+        cur_letter = 0
+        prefix_len = len(prefix)
+        while cur_node != None and cur_letter < prefix_len:
+            cur_node = cur_node.lookup(prefix[cur_letter])
+            cur_letter += 1
 
-        if prefix == '':
+        #pdb.set_trace()
+        if cur_letter == prefix_len and cur_node != None:
             return True
-
         else:
-            cur_letter = prefix[0].lower()
+            return False
 
-            trie_letters = [x.letter.lower() for x in node_list]
 
-            if cur_letter in trie_letters:
 
-                # 2nd argument finds the matching node object and recurses 
-                return self.has_prefix_helper(prefix[1:], [x for x in node_list if x.letter.lower() == cur_letter.lower()][0].get_children())
-            else:
-                return False
-
+    def has_prefix(self, prefix):
+        #return self.has_prefix_helper(prefix, self.root.get_children())
+        return self.has_prefix_redux(prefix)
+    
                  
 def test1():
     words = ['dog', 'DOG', 'day', 'delta', 'dogma', 'A',"to", "tea", "ted", "ten", "i", "in", "inn"]
@@ -231,6 +242,7 @@ def test1():
 
         if result != expected[i]:
             tests_pass = False
+            #pdb.runcall(t.has_prefix, test)
     
     print(f'tests pass: {tests_pass}')
 
@@ -299,7 +311,9 @@ def test2():
 
 #test2()
 
-suggestion_test()
+#suggestion_test()
+
+test1()
 
 
 # autocomplete (i.e. for a web form)
