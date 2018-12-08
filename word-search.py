@@ -211,6 +211,8 @@ class Trie:
             cur_letter += 1
 
         #pdb.set_trace()
+
+
         
         if cur_letter == prefix_len and cur_node != None:
             return True
