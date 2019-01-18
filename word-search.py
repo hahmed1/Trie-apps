@@ -108,7 +108,8 @@ class Node:
 class Trie:
     def __init__(self):
         self.root = Node('')
-      
+
+        self.suggest_visited = {}      
 
     def add_word(self, word):
         cur = self.root
@@ -179,7 +180,42 @@ class Trie:
         else:
             return []
         '''
+
+    def suggest_helper(self, prefix, source, num_words):
+        
+        if len(self.suggest_visited) >= num_words:
+            return
+
+        children = sorted(source.get_children(), key=lambda y: y.weight, reverse=True)
+        
+        #pdb.set_trace()
+        if children:
+            for node in children:
+
+                if node.is_terminal():
+                    self.suggest_visited[prefix + node.letter] = 1
+                else:
+                    self.suggest_helper(prefix + node.letter, node, num_words)
+                
+
+
+    def suggest(self, prefix, num_words=20):
+
+        cur = [self.root] 
+        pos = 0
+
+        #advance 'cur' to point to the lowest node in the Trie that matches with the prefix
+        while cur and pos < len(prefix): 
+            cur = [x for x in cur[0].get_children() if x.letter == prefix[pos]]
+            pos += 1
     
+    
+        self.suggest_visited.clear()
+        self.suggest_helper(prefix, cur[0], num_words)
+        
+        return list(self.suggest_visited.keys())
+
+
     def dfs_print_helper(self, source, indent):
 
         #visited = {self.root: None}
@@ -211,9 +247,6 @@ class Trie:
             cur_letter += 1
 
         #pdb.set_trace()
-
-
-        
         if cur_letter == prefix_len and cur_node != None:
             return True
         else:
@@ -284,7 +317,11 @@ def suggestion_test():
     for word in weights: 
         t.add_weight(word)
 
-    t.suggest_words('de')
+    #t.suggest_words('de')
+    #t.print()
+
+    print(t.suggest('d'))
+
 
 def test2():
     words = create_word_hash('./monte-cristo.txt')
@@ -316,7 +353,7 @@ def test2():
 
 #suggestion_test()
 
-test1()
+suggestion_test()
 
 
 # autocomplete (i.e. for a web form)
