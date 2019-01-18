@@ -1,20 +1,4 @@
-import pdb
-
-from collections import deque
-
-#read the book, get the unique words
-def create_word_hash(text):   
-    words = {}
-    distinct_count = 0
-    with open(text, 'r') as book: 
-        for line in book: 
-            for word in line.split():
-                if word not in words: 
-                    words[word] = 1
-                    distinct_count += 1
-    print(f"distinct word count {distinct_count}")
-    return words
-
+import argparse
 
 
 class Node:
@@ -132,9 +116,9 @@ class Trie:
     #
     # Suppose for example that the word='dog'.  Then for each node in the path "d", "o", "g", 
     # we increment the weight of the node.  
-    # TODO: test this
+    # 
     # -> Tests reveal that the below method works, except that the last letter of the word does not get 
-    #    incremented.  
+    #    incremented, which doesn't affect the suggestion feature.  
 
     def add_weight(self, word):
         cur = self.root 
@@ -144,43 +128,7 @@ class Trie:
             cur.increment_weight()
             cur = cur.get_child(c)
 
-    def suggest_words_helper(self, prefix, num_words, source, words):
-
-        
-        children = sorted(source.get_children(), key=lambda y: y.weight, reverse=True)
-            
-        for child in children: 
-            if child.is_terminal():
-                return prefix + child.letter
-            else:
-                return self.suggest_words_helper(prefix + child.letter, num_words, child)
-
-
-
-
-
-    # Autocomplete feature.  Suggest a list of words based on weights, which are specified according to 
-    # the semantics specified in add_weight() above.  
-    def suggest_words(self, prefix, num_words=20):
-        cur = [self.root] 
-        pos = 0
-
-        #advance 'cur' to point to the lowest node in the Trie that matches with the prefix
-        while cur and pos < len(prefix): 
-            cur = [x for x in cur[0].get_children() if x.letter == prefix[pos]]
-            pos += 1
-    
-        self.suggest_words_helper(prefix[pos:], num_words, cur)
-        '''
-        #returns the list of the current nodes children matching with the first character in the given prefix, sorted by weight in descending order
-        source = [x for x in sorted(cur.get_children(), key=lambda y : y.weight, reverse=True) if x.letter == prefix[0]]
-
-        if source: 
-            return self.suggest_words_helper(prefix[1:], num_words, source[0])
-        else:
-            return []
-        '''
-
+    # basically a DFS
     def suggest_helper(self, prefix, source, num_words):
         
         if len(self.suggest_visited) >= num_words:
@@ -188,7 +136,6 @@ class Trie:
 
         children = sorted(source.get_children(), key=lambda y: y.weight, reverse=True)
         
-        #pdb.set_trace()
         if children:
             for node in children:
 
@@ -201,17 +148,17 @@ class Trie:
 
     def suggest(self, prefix, num_words=20):
 
-        cur = [self.root] 
+        cur = self.root
         pos = 0
 
         #advance 'cur' to point to the lowest node in the Trie that matches with the prefix
         while cur and pos < len(prefix): 
-            cur = [x for x in cur[0].get_children() if x.letter == prefix[pos]]
+            cur = cur.get_child(prefix[pos])
             pos += 1
-    
+
     
         self.suggest_visited.clear()
-        self.suggest_helper(prefix, cur[0], num_words)
+        self.suggest_helper(prefix, cur, num_words)
         
         return list(self.suggest_visited.keys())
 
@@ -238,7 +185,7 @@ class Trie:
         self.dfs_print_helper(self.root, 0)
 
 
-    def has_prefix_redux(self, prefix):
+    def has_prefix_helper(self, prefix):
         cur_node = self.root
         cur_letter = 0
         prefix_len = len(prefix)
@@ -256,35 +203,9 @@ class Trie:
 
     def has_prefix(self, prefix):
         #return self.has_prefix_helper(prefix, self.root.get_children())
-        return self.has_prefix_redux(prefix)
+        return self.has_prefix_helper(prefix)
     
                  
-def test1():
-    words = ['dog', 'DOG', 'day', 'delta', 'dogma', 'A',"to", "tea", "ted", "ten", "i", "in", "inn"]
-    
-    prefixes = ['dog', 'go', 'a', 'lx', 't', '', 'in', 'x', 'n', 'i']
-    expected = [True, False, True, False, True, True, True, False, False, True]
-    t = Trie()
-    
-    for word in words:
-        t.add_word(word)
-
-    tests_pass = True
-    for i,test in enumerate(prefixes):
-
-        result = t.has_prefix(test)
-
-        print(f'Contains prefix: {test}: {result}.  Expected: {expected[i]}')
-
-        if result != expected[i]:
-            tests_pass = False
-            #pdb.runcall(t.has_prefix, test)
-    
-    print(f'tests pass: {tests_pass}')
-
-    t.print()
-
-
 def add_weights_test():
     words = ['dog', 'DOG', 'day', 'delta', 'dogma', 'A',"to", "tea", "ted", "ten", "i", "in", "inn"]
     
@@ -303,63 +224,63 @@ def add_weights_test():
     t.print()
 
 def suggestion_test():
-    words = ['dog', 'DOG', 'day', 'delta', 'dogma', 'A',"to", "tea", "ted", "ten", "i", "in", "inn"]
-    
-    prefixes = ['dog', 'go', 'a', 'lx', 't', '', 'in', 'x', 'n', 'i']
-    expected = [True, False, True, False, True, True, True, False, False, True]
+    words = ['dog', 'drake', 'dragon', 'detla', 'day']
+
     t = Trie()
     
     for word in words:
         t.add_word(word)
 
-    weights = ['delta', 'dark', 'day', 'deltoid', 'i', 'in']
+    weights = ['drake'] * 7
+    weights.append('dragon')
+    
+    weights.append('dog')
+    weights.append('dog')
+
+    for i in range(6):
+        weights.append('day')
+
+    weights.append('delta')
 
     for word in weights: 
         t.add_weight(word)
 
     #t.suggest_words('de')
-    #t.print()
+    t.print()
 
     print(t.suggest('d'))
 
 
-def test2():
-    words = create_word_hash('./monte-cristo.txt')
 
-    t = Trie()
+def build_trie(path_to_text):
+    words = {}
+    distinct_count = 0
 
-    
-    for word in words.keys():
-        t.add_word(word)
+    trie = Trie()  
+    with open(path_to_text, 'r') as text:
+        for line in text: 
+            for word in line.split():
 
+                # use the words dict to add the current word to the trie 
+                # only if we have not yet seen it
+                if word not in words:
+                    words[word] = 1
+                    distinct_count += 1
+                    trie.add_word(word)
+                
+                # update the trie weight regardless of whether 
+                # we have seen yet or not, so that weights approximate 
+                # English word frequencies to help with the auto-complete feature
+                trie.add_weight(word)
 
-    #t.print()
+    print(f"distinct word count {distinct_count}")
+    return trie   
 
-    import sys
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Provide a source of text, provide a prefix, and get a list of autocomplete-suggestions for the prefix based on the provided text')
+    parser.add_argument('-text',  help='the path to the source text with which we will build the word-frequence trie', required=True)
+    parser.add_argument('-prefix', help='the prefix (i.e. key) to the trie',required=True)
+    args = parser.parse_args()
 
-    #looks like it is not finding the size of the full object graph
-    print(f"Trie size in Bytes: {sys.getsizeof(t)}")
-    print(f'Dict size in MB: {sys.getsizeof(words) / 1024 / 1024}')
-
-    u_input = ''
-
-    while u_input != 'quit':
-
-        u_input = input('>')
-
-        print(t.has_prefix(u_input))
-
-#test2()
-
-#suggestion_test()
-
-suggestion_test()
-
-
-# autocomplete (i.e. for a web form)
-# assuming that the source text is a representative
-# sample of the word distribution of the English language, the trie can be used to power Autocomplete. 
-# 
-# 
-# Properties of the word-trie: 
-#   sparse 
+    trie = build_trie(args.text)
+    print(trie.suggest(args.prefix))
