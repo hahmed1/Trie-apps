@@ -22,5 +22,6 @@ arguments:
                         the number of words to return in the suggestion list
 
 
-
+The demo below creates a weighted Trie out of all the words in the the French classic The Count of Monte Cristo, and then
+suggests 10 words starting with the prefix "the".  Most of the execution time is spent in building the Trie (the book has about half a million words, about 40K of which are unique).  The actual lookup/autocomplete is fast once the Trie is built.  
 ![](demo.gif)
