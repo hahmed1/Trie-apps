@@ -90,9 +90,9 @@ class Node:
 
 
 class Trie:
-    def __init__(self):
+    def __init__(self, num_suggest):
         self.root = Node('')
-
+        self.num_suggest = num_suggest
         self.suggest_visited = {}      
 
     def add_word(self, word):
@@ -129,9 +129,9 @@ class Trie:
             cur = cur.get_child(c)
 
     # basically a DFS
-    def suggest_helper(self, prefix, source, num_words):
+    def suggest_helper(self, prefix, source):
         
-        if len(self.suggest_visited) >= num_words:
+        if len(self.suggest_visited) >= self.num_suggest:
             return
 
         children = sorted(source.get_children(), key=lambda y: y.weight, reverse=True)
@@ -142,11 +142,11 @@ class Trie:
                 if node.is_terminal():
                     self.suggest_visited[prefix + node.letter] = 1
                 else:
-                    self.suggest_helper(prefix + node.letter, node, num_words)
+                    self.suggest_helper(prefix + node.letter, node)
                 
 
 
-    def suggest(self, prefix, num_words=20):
+    def suggest(self, prefix):
 
         cur = self.root
         pos = 0
@@ -158,7 +158,7 @@ class Trie:
 
     
         self.suggest_visited.clear()
-        self.suggest_helper(prefix, cur, num_words)
+        self.suggest_helper(prefix, cur)
         
         return list(self.suggest_visited.keys())
 
@@ -211,7 +211,7 @@ def add_weights_test():
     
     prefixes = ['dog', 'go', 'a', 'lx', 't', '', 'in', 'x', 'n', 'i']
     expected = [True, False, True, False, True, True, True, False, False, True]
-    t = Trie()
+    t = Trie(20)
     
     for word in words:
         t.add_word(word)
@@ -226,7 +226,7 @@ def add_weights_test():
 def suggestion_test():
     words = ['dog', 'drake', 'dragon', 'detla', 'day']
 
-    t = Trie()
+    t = Trie(20)
     
     for word in words:
         t.add_word(word)
@@ -252,11 +252,11 @@ def suggestion_test():
 
 
 
-def build_trie(path_to_text):
+def build_trie(path_to_text, num_suggest):
     words = {}
     distinct_count = 0
 
-    trie = Trie()  
+    trie = Trie(num_suggest)  
     with open(path_to_text, 'r') as text:
         for line in text: 
             for word in line.split():
@@ -278,9 +278,14 @@ def build_trie(path_to_text):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Provide a source of text, provide a prefix, and get a list of autocomplete-suggestions for the prefix based on the provided text')
-    parser.add_argument('-text',  help='the path to the source text with which we will build the word-frequence trie', required=True)
-    parser.add_argument('-prefix', help='the prefix (i.e. key) to the trie',required=True)
+    parser.add_argument('-text', '-t',  help='the path to the source text with which we will build the word-frequence trie', required=True)
+    parser.add_argument('-prefix', '-p', help='the prefix (i.e. key) to the trie',required=True)
+    parser.add_argument('-count', '-c' ,help='the number of words to return in the suggestion list', default=20)
     args = parser.parse_args()
 
-    trie = build_trie(args.text)
-    print(trie.suggest(args.prefix))
+    trie = build_trie(args.text, args.count)
+    words = trie.suggest(args.prefix)
+    for word in words:
+        print(word)
+
+
