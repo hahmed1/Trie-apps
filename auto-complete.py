@@ -1,94 +1,5 @@
 import argparse
 
-
-class Node:
-    def __init__(self, letter):
-        self.letter = letter
-
-        self.children = [None for x in range(26)]
-        
-        # this gets set to true if the path from root to this node is a valid word 
-        self.terminal = False
-
-        self.weight = 0
-
-     
-    def __repr__(self):
-        return f'Node object - Letter: {self.letter} - Weight:{self.weight}'
-
-    # get the position of a new letter in the children array, 
-    # irrespective of case
-    @staticmethod
-    def _get_pos(letter):
-        pos = ord(letter.lower()) - 97
-        if pos < 0 or pos > 25:
-            msg = f'Attempted to add a non alphabetical character {letter}'
-            raise ValueError(msg)
-
-        return pos
-
-    # add a single node, which is a letter
-    # the node could already be linked with its own children.
-    def add_child(self, node):
-        new_letter = node.letter
-
-        try:
-            position = Node._get_pos(new_letter)
-
-            if self.children[position] == None:
-                self.children[position] = node
-        except ValueError:
-            pass
-
-    # returns non-null raw Node object  
-    def get_children(self):
-        return [x for x in self.children if x]
-
-    # this is position based
-    def has_child(self, letter):
-
-        try:
-            pos = Node._get_pos(letter)
-            return self.children[pos] != None
-        except: 
-            return False
-
-        #return letter in self.get_children()
-
-    # look-up an existing child and return it
-    def get_child(self, letter):
-        if not self.has_child(letter):
-            raise ValueError(f'{self} does not have a child with letter {letter}')
-    
-        pos = Node._get_pos(letter)
-        return self.children[pos]
-
-
-    def get_child_letters(self):
-        #print(self.get_children())
-        #pdb.set_trace()
-        
-        return [x.letter for x in self.get_children()]
-
-    def is_terminal(self):
-        return self.terminal
-
-    # sets terminal to true
-    def set_terminal(self):
-        self.terminal = True
-
- 
-    def increment_weight(self): 
-        self.weight += 1
-
-    def get_weight(self):
-        return self.weight
-
-    # either returns the immediate child with the given letter, or null
-    def lookup(self, letter):
-        return self.children[Node._get_pos(letter)]
-
-
 class Trie:
     def __init__(self, num_suggest):
         self.root = Node('')
@@ -205,52 +116,96 @@ class Trie:
         #return self.has_prefix_helper(prefix, self.root.get_children())
         return self.has_prefix_helper(prefix)
     
+class Node:
+    def __init__(self, letter):
+        self.letter = letter
+
+        self.children = [None for x in range(26)]
+        
+        # this gets set to true if the path from root to this node is a valid word 
+        self.terminal = False
+
+        self.weight = 0
+
+     
+    def __repr__(self):
+        return f'Node object - Letter: {self.letter} - Weight:{self.weight}'
+
+    # get the position of a new letter in the children array, 
+    # irrespective of case
+    @staticmethod
+    def _get_pos(letter):
+        pos = ord(letter.lower()) - 97
+        if pos < 0 or pos > 25:
+            msg = f'Attempted to add a non alphabetical character {letter}'
+            raise ValueError(msg)
+
+        return pos
+
+    # add a single node, which is a letter
+    # the node could already be linked with its own children.
+    def add_child(self, node):
+        new_letter = node.letter
+
+        try:
+            position = Node._get_pos(new_letter)
+
+            if self.children[position] == None:
+                self.children[position] = node
+        except ValueError:
+            pass
+
+    # returns non-null raw Node object  
+    def get_children(self):
+        return [x for x in self.children if x]
+
+    # this is position based
+    def has_child(self, letter):
+
+        try:
+            pos = Node._get_pos(letter)
+            return self.children[pos] != None
+        except: 
+            return False
+
+        #return letter in self.get_children()
+
+    # look-up an existing child and return it
+    def get_child(self, letter):
+        if not self.has_child(letter):
+            raise ValueError(f'{self} does not have a child with letter {letter}')
+    
+        pos = Node._get_pos(letter)
+        return self.children[pos]
+
+
+    def get_child_letters(self):
+        #print(self.get_children())
+        #pdb.set_trace()
+        
+        return [x.letter for x in self.get_children()]
+
+    def is_terminal(self):
+        return self.terminal
+
+    # sets terminal to true
+    def set_terminal(self):
+        self.terminal = True
+
+ 
+    def increment_weight(self): 
+        self.weight += 1
+
+    def get_weight(self):
+        return self.weight
+
+    # either returns the immediate child with the given letter, or null
+    def lookup(self, letter):
+        return self.children[Node._get_pos(letter)]
+
+
+
                  
-def add_weights_test():
-    words = ['dog', 'DOG', 'day', 'delta', 'dogma', 'A',"to", "tea", "ted", "ten", "i", "in", "inn"]
-    
-    prefixes = ['dog', 'go', 'a', 'lx', 't', '', 'in', 'x', 'n', 'i']
-    expected = [True, False, True, False, True, True, True, False, False, True]
-    t = Trie(20)
-    
-    for word in words:
-        t.add_word(word)
-
-    weights = ['delta', 'dark', 'day', 'deltoid', 'i', 'in']
-
-    for word in weights: 
-        t.add_weight(word)
-
-    t.print()
-
-def suggestion_test():
-    words = ['dog', 'drake', 'dragon', 'detla', 'day']
-
-    t = Trie(20)
-    
-    for word in words:
-        t.add_word(word)
-
-    weights = ['drake'] * 7
-    weights.append('dragon')
-    
-    weights.append('dog')
-    weights.append('dog')
-
-    for i in range(6):
-        weights.append('day')
-
-    weights.append('delta')
-
-    for word in weights: 
-        t.add_weight(word)
-
-    #t.suggest_words('de')
-    t.print()
-
-    print(t.suggest('d'))
-
-
 
 def build_trie(path_to_text, num_suggest):
     words = {}
