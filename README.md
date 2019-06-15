@@ -13,7 +13,7 @@ arguments:
   -h, --help            show this help message and exit
   
   -text TEXT, -t TEXT   the path to the source text with which we will build
-                        the word-frequence trie
+                        the word-frequency trie
                         
   -prefix PREFIX, -p PREFIX
                         the prefix (i.e. key) to the trie
